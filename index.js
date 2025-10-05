@@ -6,25 +6,51 @@ var express = require('express');
 var app = express();
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC 
+// so that your API is remotely testable by FCC
 var cors = require('cors');
-app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
+app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+app.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+// your first API endpoint...
+app.get('/api/hello', function (req, res) {
+  res.json({ greeting: 'hello API' });
 });
 
+// /api/:date?
+app.get('/api/:date?', (req, res) => {
+  const dateInput = req.params.date;
+  let dateObj;
+  console.log(dateInput);
 
+  if (!dateInput) {
+    dateObj = new Date();
+  } else {
+    // if dateInput is a string
+    if (/^\d+$/.test(dateInput)) {
+      dateObj = new Date(parseInt(dateInput));
+    } else {
+      dateObj = new Date(dateInput);
+    }
+  }
+
+  if (isNaN(dateObj.getTime())) {
+    // CASE 4: Invalid Date -> Return error JSON
+    res.json({ error: 'Invalid Date' });
+  } else {
+    // CASE 5: Valid Date -> Return required JSON structure
+    res.json({
+      unix: dateObj.getTime(),
+      utc: dateObj.toUTCString(),
+    });
+  }
+});
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
